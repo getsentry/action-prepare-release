@@ -1,0 +1,27 @@
+name: 'Release prep'
+description: 'Common setup for craft/prepare'
+inputs:
+  inputs:
+    version:
+      description: Version to release (optional)
+      required: false
+runs:
+  using: 'composite'
+  steps:
+    - name: Determine version
+      run: |
+        if [[ -n '${{ inputs.version }}' ]]; then
+        echo 'RELEASE_VERSION=${{ inputs.version }}' >> $GITHUB_ENV;
+        else
+        DATE_PART=$(date +'%y.%-m')
+        declare -i PATCH_VERSION=0
+        while curl -sf -o /dev/null "https://api.github.com/repos/$GITHUB_REPOSITORY/git/ref/tags/$DATE_PART.$PATCH_VERSION"; do
+            PATCH_VERSION+=1
+        done
+        echo "RELEASE_VERSION=${DATE_PART}.${PATCH_VERSION}" >> $GITHUB_ENV;
+        fi
+    - name: Set git user to getsentry-bot
+      run: |
+        echo "GIT_COMMITTER_NAME=getsentry-bot" >> $GITHUB_ENV;
+        echo "GIT_AUTHOR_NAME=getsentry-bot" >> $GITHUB_ENV;
+        echo "EMAIL=bot@getsentry.com" >> $GITHUB_ENV;
