@@ -14,7 +14,7 @@ runs:
       name: Check release blockers
       shell: bash
       run: |
-        if [[ -z $INPUT_FORCE && curl -s "https://api.github.com/repos/$GITHUB_REPOSITORY/issues?state=open&labels=release-blocker" | grep -Pzvo '\[[\s\n\r]*\]' ]]; then
+        if [[ -z "$INPUT_FORCE" && curl -s "https://api.github.com/repos/$GITHUB_REPOSITORY/issues?state=open&labels=release-blocker" | grep -Pzvo '\[[\s\n\r]*\]' ]]; then
           echo "Open release-blocking issues found, cancelling release...";
           curl -sf -X POST -H 'Accept: application/vnd.github.v3+json' -H 'Authorization: token ${{ github.token }}' https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/cancel;
         fi
