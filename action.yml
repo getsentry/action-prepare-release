@@ -1,13 +1,12 @@
 name: 'Release prep'
 description: 'Common setup for craft/prepare'
 inputs:
-  inputs:
-    version:
-      description: Version to release (optional)
-      required: false
-    force:
-      description: Force a release even when there are release-blockers (optional)
-      required: false
+  version:
+    description: Version to release (optional)
+    required: false
+  force:
+    description: Force a release even when there are release-blockers (optional)
+    required: false
 runs:
   using: 'composite'
   steps:
