@@ -5,20 +5,30 @@ inputs:
     version:
       description: Version to release (optional)
       required: false
+    force:
+      description: Force a release even when there are release-blockers (optional)
+      required: false
 runs:
   using: 'composite'
   steps:
+    - id: killswitch
+      name: Check release blockers
+      run: |
+        if [[ -z $INPUT_FORCE && curl -s "https://api.github.com/repos/$GITHUB_REPOSITORY/issues?state=open&labels=release-blocker" | grep -Pzvo '\[[\s\n\r]*\]' ]]; then
+          echo "Open release-blocking issues found, cancelling release...";
+          curl -sf -X POST -H 'Accept: application/vnd.github.v3+json' -H 'Authorization: token ${{ github.token }}' https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/cancel;
+        fi
     - name: Determine version
       run: |
-        if [[ -n '${{ inputs.version }}' ]]; then
-        echo 'RELEASE_VERSION=${{ inputs.version }}' >> $GITHUB_ENV;
+        if [[ -n "$INPUT_VERSION" ]]; then
+          echo "RELEASE_VERSION=$INPUT_VERSION" >> $GITHUB_ENV;
         else
-        DATE_PART=$(date +'%y.%-m')
-        declare -i PATCH_VERSION=0
-        while curl -sf -o /dev/null "https://api.github.com/repos/$GITHUB_REPOSITORY/git/ref/tags/$DATE_PART.$PATCH_VERSION"; do
+          DATE_PART=$(date +'%y.%-m')
+          declare -i PATCH_VERSION=0
+          while curl -sf -o /dev/null "https://api.github.com/repos/$GITHUB_REPOSITORY/git/ref/tags/$DATE_PART.$PATCH_VERSION"; do
             PATCH_VERSION+=1
-        done
-        echo "RELEASE_VERSION=${DATE_PART}.${PATCH_VERSION}" >> $GITHUB_ENV;
+          done
+          echo "RELEASE_VERSION=${DATE_PART}.${PATCH_VERSION}" >> $GITHUB_ENV;
         fi
     - name: Set git user to getsentry-bot
       run: |
