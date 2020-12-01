@@ -1,10 +1,7 @@
-name: 'Release'
-description: 'Release Sentry project with Craft'
+name: 'Release prep'
+description: 'Common setup for craft/prepare'
 inputs:
   inputs:
-    ZEUS_API_TOKEN:
-        description: The API token for ZEUS
-        required: true
     version:
       description: Version to release (optional)
       required: false
@@ -23,19 +20,8 @@ runs:
           done
           echo "RELEASE_VERSION=${DATE_PART}.${PATCH_VERSION}" >> $GITHUB_ENV;
           fi
-    - name: Checkout repo
-      uses: actions/checkout@v2
-      with:
-          fetch-depth: 20
     - name: Set git user to getsentry-bot
       run: |
           echo "GIT_COMMITTER_NAME=getsentry-bot" >> $GITHUB_ENV;
           echo "GIT_AUTHOR_NAME=getsentry-bot" >> $GITHUB_ENV;
           echo "EMAIL=bot@getsentry.com" >> $GITHUB_ENV;
-    - name: craft prepare
-      uses: getsentry/craft@master
-      with:
-          action: prepare
-          version: ${{ env.RELEASE_VERSION }}
-      env:
-          ZEUS_API_TOKEN: ${{ inputs.ZEUS_API_TOKEN }}
