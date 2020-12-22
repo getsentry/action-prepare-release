@@ -1,5 +1,5 @@
-name: 'Release prep'
-description: 'Common setup for craft/prepare'
+name: "Release prep"
+description: "Common setup for craft/prepare"
 inputs:
   version:
     description: Version to release (optional)
@@ -7,8 +7,11 @@ inputs:
   force:
     description: Force a release even when there are release-blockers (optional)
     required: false
+  craft_version:
+    description: The craft version to use, defaults to latest
+
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - id: killswitch
       name: Check release blockers
@@ -37,3 +40,24 @@ runs:
         echo "GIT_COMMITTER_NAME=getsentry-bot" >> $GITHUB_ENV;
         echo "GIT_AUTHOR_NAME=getsentry-bot" >> $GITHUB_ENV;
         echo "EMAIL=bot@getsentry.com" >> $GITHUB_ENV;
+    - name: Craft Prepare
+      run: npx @sentry/craft@${{ inputs.craft_version }} prepare --no-input "${{ env.RELEASE_VERSION }}"
+      env:
+        # TODO: Remove this
+        GITHUB_API_TOKEN: ${{ github.token }}
+    - name: Get Release Branch
+      id: release-branch
+      run: echo "::set-output name=ref::$(git rev-parse --symbolic-full-name @{-1})"
+    - name: Request publish
+      if: success()
+      uses: actions/github-script@v3
+      with:
+        github-token: ${{ secrets.GH_RELEASE_PAT }}
+        script: |
+          const repoInfo = context.repo;
+          await github.issues.create({
+            owner: repoInfo.owner,
+            repo: 'publish',
+            title: `publish: ${repoInfo.repo}@${process.env.RELEASE_VERSION}`,
+            body: `Requested by: @${context.actor}\nView diff at: https://github.com/${repoInfo.owner}/${repoInfo.repo}/compare/${{ steps.release-branch.outputs.ref }}`
+          });
