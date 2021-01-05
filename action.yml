@@ -45,11 +45,13 @@ runs:
     - name: Craft Prepare
       run: npx @sentry/craft@${{ inputs.craft_version }} prepare --no-input "${{ env.RELEASE_VERSION }}"
       env:
-        # TODO: Remove this
+        # TODO: Remove this when the latest version of craft is released
         GITHUB_API_TOKEN: ${{ github.token }}
-    - name: Get Release Branch
-      id: release-branch
-      run: echo "::set-output name=ref::$(git rev-parse --symbolic-full-name @{-1})"
+    - name: Get Release Git Info
+      id: release-git-info
+      run: |
+        echo "::set-output name=branch::$(git rev-parse --symbolic-full-name @{-1})"
+        echo "::set-output name=sha::$(git rev-parse @{-1})"
     - name: Request publish
       if: success()
       uses: actions/github-script@v3
@@ -61,5 +63,11 @@ runs:
             owner: repoInfo.owner,
             repo: 'publish',
             title: `publish: ${repoInfo.repo}@${process.env.RELEASE_VERSION}`,
-            body: `Requested by: @${context.actor}\nView diff at: https://github.com/${repoInfo.owner}/${repoInfo.repo}/compare/${{ steps.release-branch.outputs.ref }}`
+            body: [
+              `Requested by: @${context.actor}`
+              ``,
+              `Quick links:`,
+              `- [View changes](https://github.com/${repoInfo.owner}/${repoInfo.repo}/compare/${{ steps.release-git-info.outputs.branch }})`,
+              `- [View check runs](https://github.com/${repoInfo.owner}/${repoInfo.repo}/commit/${{ steps.release-git-info.outputs.sha }}/checks/)`,
+            ].join('\n'),
           });
