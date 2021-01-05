@@ -4,6 +4,10 @@ inputs:
   version:
     description: Version to release (optional)
     required: false
+  calver:
+    description: Use automatic CalVer versioning
+    required: true
+    default: false
   force:
     description: Force a release even when there are release-blockers (optional)
     required: false
@@ -28,13 +32,16 @@ runs:
       run: |
         if [[ -n '${{ inputs.version }}' ]]; then
           echo 'RELEASE_VERSION=${{ inputs.version }}' >> $GITHUB_ENV;
-        else
+        elif [[ '${{ inputs.calver }}' = 'true' ]]
           DATE_PART=$(date +'%y.%-m')
           declare -i PATCH_VERSION=0
           while curl -sf -o /dev/null "https://api.github.com/repos/$GITHUB_REPOSITORY/git/ref/tags/$DATE_PART.$PATCH_VERSION"; do
             PATCH_VERSION+=1
           done
           echo "RELEASE_VERSION=${DATE_PART}.${PATCH_VERSION}" >> $GITHUB_ENV;
+        else
+          echo "You need to provide a version to release.";
+          exit 1;
         fi
     - name: Set git user to getsentry-bot
       shell: bash
