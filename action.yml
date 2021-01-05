@@ -1,4 +1,4 @@
-name: "Release prep"
+name: "Prepare Release"
 description: "Common setup for craft/prepare"
 inputs:
   version:
@@ -8,7 +8,9 @@ inputs:
     description: Force a release even when there are release-blockers (optional)
     required: false
   craft_version:
-    description: The craft version to use, defaults to latest
+    description: The craft version to use, defaults to "latest" (optional)
+    required: false
+    default: latest
 
 runs:
   using: "composite"
