@@ -9,7 +9,7 @@ inputs:
     required: false
   craft_version:
     description: The craft version to use, defaults to "latest" (optional)
-    required: false
+    required: true
     default: latest
 
 runs:
