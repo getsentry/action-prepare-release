@@ -61,6 +61,7 @@ runs:
       run: |
         echo "::set-output name=branch::$(git rev-parse --symbolic-full-name @{-1})"
         echo "::set-output name=sha::$(git rev-parse @{-1})"
+        echo "::set-output name=last::$(gh api repos/:owner/:repo/releases/latest | jq -r .name)"
     - name: Request publish
       shell: bash
       run: |
@@ -68,7 +69,7 @@ runs:
         body="Requested by: @$GITHUB_ACTOR
 
         Quick links:
-        - [View changes](https://github.com/$GITHUB_REPOSITORY/compare/${{ steps.release-git-info.outputs.branch }})
+        - [View changes](https://github.com/$GITHUB_REPOSITORY/compare/${{ steps.release-git-info.outputs.branch }}..${{ steps.release-git-info.outputs.last }})
         - [View check runs](https://github.com/$GITHUB_REPOSITORY/commit/${{ steps.release-git-info.outputs.sha }}/checks/)
 
         Assign the **accepted** label to this issue to approve the release.
