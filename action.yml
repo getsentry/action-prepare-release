@@ -72,7 +72,7 @@ runs:
         body="Requested by: @$GITHUB_ACTOR
 
         Quick links:
-        - [View changes](https://github.com/${repoInfo.owner}/${repoInfo.repo}/compare/${{ steps.release-git-info.outputs.branch }})
-        - [View check runs](https://github.com/${repoInfo.owner}/${repoInfo.repo}/commit/${{ steps.release-git-info.outputs.sha }}/checks/)
+        - [View changes](https://github.com/GITHUB_REPOSITORY/compare/${{ steps.release-git-info.outputs.branch }})
+        - [View check runs](https://github.com/GITHUB_REPOSITORY/commit/${{ steps.release-git-info.outputs.sha }}/checks/)
         "
         gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$title" --body "$body"
