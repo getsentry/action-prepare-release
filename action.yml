@@ -23,9 +23,9 @@ runs:
       name: Check release blockers
       shell: bash
       run: |
-        if [[ -z '${{ inputs.force }}' ]] && curl -s "https://api.github.com/repos/$GITHUB_REPOSITORY/issues?state=open&labels=release-blocker" | grep -Pzvo '\[[\s\n\r]*\]'; then
+        if [[ -z '${{ inputs.force }}' ]] && gh issue list -l release-blocker -s open | grep -q '^[0-9]\+[[:space:]]'; then
           echo "Open release-blocking issues found, cancelling release...";
-          curl -sf -X POST -H 'Accept: application/vnd.github.v3+json' -H 'Authorization: token ${{ github.token }}' https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/cancel;
+          gh api -X POST repos/:owner/:repo/actions/runs/$GITHUB_RUN_ID/cancel;
         fi
     - name: Determine version
       shell: bash
@@ -35,7 +35,7 @@ runs:
         elif [[ '${{ inputs.calver }}' = 'true' ]]
           DATE_PART=$(date +'%y.%-m')
           declare -i PATCH_VERSION=0
-          while curl -sf -o /dev/null "https://api.github.com/repos/$GITHUB_REPOSITORY/git/ref/tags/$DATE_PART.$PATCH_VERSION"; do
+          while gh api --silent "repos/:owner/:repo/git/ref/tags/$DATE_PART.$PATCH_VERSION" 2>/dev/null; do
             PATCH_VERSION+=1
           done
           echo "RELEASE_VERSION=${DATE_PART}.${PATCH_VERSION}" >> $GITHUB_ENV;
@@ -50,31 +50,32 @@ runs:
         echo "GIT_AUTHOR_NAME=getsentry-bot" >> $GITHUB_ENV;
         echo "EMAIL=bot@getsentry.com" >> $GITHUB_ENV;
     - name: Craft Prepare
+      id: craft
+      shell: bash
       run: npx @sentry/craft@${{ inputs.craft_version }} prepare --no-input "${{ env.RELEASE_VERSION }}"
       env:
         # TODO: Remove this when the latest version of craft is released
         GITHUB_API_TOKEN: ${{ github.token }}
     - name: Get Release Git Info
       id: release-git-info
+      shell: bash
       run: |
         echo "::set-output name=branch::$(git rev-parse --symbolic-full-name @{-1})"
         echo "::set-output name=sha::$(git rev-parse @{-1})"
     - name: Request publish
-      if: success()
-      uses: actions/github-script@v3
-      with:
-        github-token: ${{ secrets.GH_RELEASE_PAT }}
-        script: |
-          const repoInfo = context.repo;
-          await github.issues.create({
-            owner: repoInfo.owner,
-            repo: 'publish',
-            title: `publish: ${repoInfo.repo}@${process.env.RELEASE_VERSION}`,
-            body: [
-              `Requested by: @${context.actor}`
-              ``,
-              `Quick links:`,
-              `- [View changes](https://github.com/${repoInfo.owner}/${repoInfo.repo}/compare/${{ steps.release-git-info.outputs.branch }})`,
-              `- [View check runs](https://github.com/${repoInfo.owner}/${repoInfo.repo}/commit/${{ steps.release-git-info.outputs.sha }}/checks/)`,
-            ].join('\n'),
-          });
+      shell: bash
+      run: |
+        if [[ '${{ steps.craft.outcome }}' != 'success' ]]; then
+          exit 1;
+        fi
+
+        title="publish: $GITHUB_REPOSITORY@$RELEASE_VERSION"
+        body="Requested by: @$GITHUB_ACTOR
+
+        Quick links:
+        - [View changes](https://github.com/$GITHUB_REPOSITORY/compare/${{ steps.release-git-info.outputs.branch }})
+        - [View check runs](https://github.com/$GITHUB_REPOSITORY/commit/${{ steps.release-git-info.outputs.sha }}/checks/)
+
+        Assign the **accepted** label to this issue to approve the release.
+        "
+        gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$title" --body "$body"
