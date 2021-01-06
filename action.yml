@@ -50,7 +50,6 @@ runs:
         echo "GIT_AUTHOR_NAME=getsentry-bot" >> $GITHUB_ENV;
         echo "EMAIL=bot@getsentry.com" >> $GITHUB_ENV;
     - name: Craft Prepare
-      id: craft
       shell: bash
       run: npx @sentry/craft@${{ inputs.craft_version }} prepare --no-input "${{ env.RELEASE_VERSION }}"
       env:
@@ -65,10 +64,6 @@ runs:
     - name: Request publish
       shell: bash
       run: |
-        if [[ '${{ steps.craft.outcome }}' != 'success' ]]; then
-          exit 1;
-        fi
-
         title="publish: $GITHUB_REPOSITORY@$RELEASE_VERSION"
         body="Requested by: @$GITHUB_ACTOR
 
