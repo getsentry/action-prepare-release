@@ -32,7 +32,7 @@ runs:
       run: |
         if [[ -n '${{ inputs.version }}' ]]; then
           echo 'RELEASE_VERSION=${{ inputs.version }}' >> $GITHUB_ENV;
-        elif [[ '${{ inputs.calver }}' = 'true' ]]
+        elif [[ '${{ inputs.calver }}' = 'true' ]]; then
           DATE_PART=$(date +'%y.%-m')
           declare -i PATCH_VERSION=0
           while gh api --silent "repos/:owner/:repo/git/ref/tags/$DATE_PART.$PATCH_VERSION" 2>/dev/null; do
