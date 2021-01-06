@@ -68,12 +68,13 @@ runs:
         if [[ '${{ steps.craft.outcome }}' != 'success' ]]; then
           exit 1;
         fi
-        title= "publish: $GITHUB_REPOSITORY@$RELEASE_VERSION"
+
+        title="publish: $GITHUB_REPOSITORY@$RELEASE_VERSION"
         body="Requested by: @$GITHUB_ACTOR
 
         Quick links:
-        - [View changes](https://github.com/GITHUB_REPOSITORY/compare/${{ steps.release-git-info.outputs.branch }})
-        - [View check runs](https://github.com/GITHUB_REPOSITORY/commit/${{ steps.release-git-info.outputs.sha }}/checks/)
+        - [View changes](https://github.com/$GITHUB_REPOSITORY/compare/${{ steps.release-git-info.outputs.branch }})
+        - [View check runs](https://github.com/$GITHUB_REPOSITORY/commit/${{ steps.release-git-info.outputs.sha }}/checks/)
 
         Assign the **accepted** label to this issue to approve the release.
         "
