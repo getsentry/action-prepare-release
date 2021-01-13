@@ -15,6 +15,10 @@ inputs:
     description: The craft version to use, defaults to "latest" (optional)
     required: true
     default: latest
+  path:
+    description: The path that Craft will run inside. Defaults to `.`
+    required: true
+    default: "."
 
 runs:
   using: "composite"
@@ -51,7 +55,9 @@ runs:
         echo "EMAIL=bot@getsentry.com" >> $GITHUB_ENV;
     - name: Craft Prepare
       shell: bash
-      run: npx @sentry/craft@${{ inputs.craft_version }} prepare --no-input "${{ env.RELEASE_VERSION }}"
+      run: |
+        cd '${{ inputs.path }}'
+        npx @sentry/craft@${{ inputs.craft_version }} prepare --no-input "${{ env.RELEASE_VERSION }}"
       env:
         # TODO: Remove this when the latest version of craft is released
         GITHUB_API_TOKEN: ${{ github.token }}
