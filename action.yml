@@ -71,7 +71,12 @@ runs:
     - name: Request publish
       shell: bash
       run: |
-        title="publish: $GITHUB_REPOSITORY@$RELEASE_VERSION"
+        if [[ '${{ inputs.path }}' == '.' ]]; then
+          subdirectory='';
+        else
+          subdirectory='/${{ inputs.path }}';
+        fi
+        title="publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION"
         body="Requested by: @$GITHUB_ACTOR
 
         Quick links:
