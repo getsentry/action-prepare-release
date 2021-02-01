@@ -67,7 +67,7 @@ runs:
       run: |
         echo "::set-output name=branch::$(git rev-parse --symbolic-full-name @{-1})"
         echo "::set-output name=sha::$(git rev-parse @{-1})"
-        echo "::set-output name=last::$(gh api repos/:owner/:repo/releases/latest | jq -r .name)"
+        echo "::set-output name=last::$(gh api repos/:owner/:repo/releases/latest | jq -r .tag_name)"
     - name: Request publish
       shell: bash
       run: |
