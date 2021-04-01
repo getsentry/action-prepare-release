@@ -60,16 +60,25 @@ runs:
         cd '${{ inputs.path }}'
         npm install -g @sentry/craft@${{ inputs.craft_version }}
         craft prepare --no-input "${{ env.RELEASE_VERSION }}"
-        targets=$(craft targets | jq -r '.[]|"  [ ] \\(.)"')
+        targets=$(craft targets | jq -r '.[]|"  [ ] \(.)"')
         echo "::set-output name=targets::$targets"
       env:
         # TODO: Remove this when the latest version of craft is released
         GITHUB_API_TOKEN: ${{ github.token }}
+    - name: Set issue title for publish request
+      shell: bash
+      run: |
+        if [[ '${{ inputs.path }}' == '.' ]]; then
+          subdirectory='';
+        else
+          subdirectory='/${{ inputs.path }}';
+        fi
+        echo "ISSUE_TITLE=publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION" >> $GITHUB_ENV
     - name: Check existing publish requests
       id: existing-request
       shell: bash
       run: |
-        issue_count=$(gh issue list -S "'publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION' in:title" | wc -l)
+        issue_count=$(gh issue list -S "'$ISSUE_TITLE' in:title" | wc -l)
         echo "::set-output name=count::$issue_count"
     - name: Get Release Git Info
       id: release-git-info
@@ -83,12 +92,6 @@ runs:
       if: steps.existing-request.outputs.count == '0'
       shell: bash
       run: |
-        if [[ '${{ inputs.path }}' == '.' ]]; then
-          subdirectory='';
-        else
-          subdirectory='/${{ inputs.path }}';
-        fi
-        title="publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION"
         body="Requested by: @$GITHUB_ACTOR
 
         Quick links:
@@ -100,4 +103,4 @@ runs:
         ### Targets
         ${{ steps.craft.outputs.targets }}
         "
-        gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$title" --body "$body"
+        gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$ISSUE_TITLE" --body "$body"
