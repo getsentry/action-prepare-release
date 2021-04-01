@@ -69,7 +69,7 @@ runs:
       id: existing-request
       shell: bash
       run: |
-        issue_count=$(gh issue list -S '"publish: getsentry/sentry-cli@1.63.1" in:title' | wc -l)
+        issue_count=$(gh issue list -S "'publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION' in:title" | wc -l)
         echo "::set-output name=count::$issue_count"
     - name: Get Release Git Info
       id: release-git-info
