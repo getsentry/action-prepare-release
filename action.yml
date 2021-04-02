@@ -82,14 +82,14 @@ runs:
         echo "::set-output name=count::$issue_count"
     - name: Get Release Git Info
       id: release-git-info
-      if: steps.existing-request.outputs.count == '0'
+      if: ${{ steps.existing-request.outputs.count == '0' }}
       shell: bash
       run: |
         echo "::set-output name=branch::$(git rev-parse --symbolic-full-name @{-1})"
         echo "::set-output name=sha::$(git rev-parse @{-1})"
         echo "::set-output name=last::$(gh api repos/:owner/:repo/releases/latest | jq -r .tag_name)"
     - name: Request publish
-      if: steps.existing-request.outputs.count == '0'
+      if: ${{ steps.existing-request.outputs.count == '0' }}
       shell: bash
       run: |
         body="Requested by: @$GITHUB_ACTOR
