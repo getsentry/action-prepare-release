@@ -69,7 +69,7 @@ runs:
         cd '${{ inputs.path }}'
         craft prepare --no-input "${{ env.RELEASE_VERSION }}"
         echo $(craft targets)
-        targets=$(craft targets | jq -r '.[]|"  [ ] \(.)"')
+        targets=$(craft targets | jq -r '.[]|" - [ ] \(.)"')
         echo "::set-output name=targets::$targets"
     - name: Get Release Git Info
       id: release-git-info
