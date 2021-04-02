@@ -82,7 +82,7 @@ runs:
       shell: bash
       run: |
         # TODO(byk): Remove these lines when gh is updated in GHA
-        curl -L https://github.com/cli/cli/releases/download/v1.8.0/gh_1.8.0_linux_amd64.deb > $TMPDIR/gh.deb
+        curl -L 'https://github.com/cli/cli/releases/download/v1.8.0/gh_1.8.0_linux_amd64.deb' > $TMPDIR/gh.deb
         sudo dpkg -i $TMPDIR/gh.deb
 
         if [[ '${{ inputs.path }}' == '.' ]]; then
