@@ -110,4 +110,4 @@ runs:
         ### Targets
         ${{ steps.craft.outputs.targets }}
         "
-        gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$ISSUE_TITLE" --body "$body"
+        gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$title" --body "$body"
