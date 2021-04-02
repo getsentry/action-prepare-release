@@ -53,42 +53,51 @@ runs:
         echo "GIT_COMMITTER_NAME=getsentry-bot" >> $GITHUB_ENV;
         echo "GIT_AUTHOR_NAME=getsentry-bot" >> $GITHUB_ENV;
         echo "EMAIL=bot@getsentry.com" >> $GITHUB_ENV;
+    - name: Install Craft
+      shell: bash
+      run: |
+        craft_dir=$(mktemp -d -t .craft_XXX)
+        cd $craft_dir
+        npm install @sentry/craft@${{ inputs.craft_version }}
+        echo "$craft_dir/node_modules/.bin" >> $GITHUB_PATH
     - name: Craft Prepare
       id: craft
       shell: bash
+      env:
+        CRAFT_LOG_LEVEL: WARN
       run: |
         cd '${{ inputs.path }}'
-        npm install -g @sentry/craft@${{ inputs.craft_version }}
         craft prepare --no-input "${{ env.RELEASE_VERSION }}"
-        targets=$(craft targets | jq -r '.[]|"  [ ] \\(.)"')
+        targets=$(craft targets | jq -r '.[]|" - [ ] \(.)"')
         echo "::set-output name=targets::$targets"
-      env:
-        # TODO: Remove this when the latest version of craft is released
-        GITHUB_API_TOKEN: ${{ github.token }}
-    - name: Check existing publish requests
-      id: existing-request
-      shell: bash
-      run: |
-        issue_count=$(gh issue list -S "'publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION' in:title" | wc -l)
-        echo "::set-output name=count::$issue_count"
     - name: Get Release Git Info
       id: release-git-info
-      if: steps.existing-request.outputs.count == '0'
       shell: bash
       run: |
         echo "::set-output name=branch::$(git rev-parse --symbolic-full-name @{-1})"
         echo "::set-output name=sha::$(git rev-parse @{-1})"
         echo "::set-output name=last::$(gh api repos/:owner/:repo/releases/latest | jq -r .tag_name)"
     - name: Request publish
-      if: steps.existing-request.outputs.count == '0'
       shell: bash
       run: |
+        # TODO(byk): Remove these lines when gh is updated in GHA
+        curl -L 'https://github.com/cli/cli/releases/download/v1.8.0/gh_1.8.0_linux_amd64.deb' > gh.deb
+        sudo dpkg -i gh.deb
+        rm gh.deb
+
         if [[ '${{ inputs.path }}' == '.' ]]; then
           subdirectory='';
         else
           subdirectory='/${{ inputs.path }}';
         fi
+
         title="publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION"
+        issue_count=$(gh -R $GITHUB_REPOSITORY_OWNER/publish issue list -S "'$title' in:title" | wc -l)
+        if [[ "$issue_count" != '0' ]]; then
+          echo "There's already an open publish request, skipped issue creation.";
+          exit 0;
+        fi
+
         body="Requested by: @$GITHUB_ACTOR
 
         Quick links:
