@@ -74,7 +74,7 @@ runs:
       id: existing-request
       shell: bash
       run: |
-         set -x
+        set -x
         issue_count=$(gh issue list -S "'$ISSUE_TITLE' in:title" | wc -l)
         echo "::set-output name=count::$issue_count"
     - name: Get Release Git Info
