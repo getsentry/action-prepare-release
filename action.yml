@@ -82,8 +82,8 @@ runs:
       shell: bash
       run: |
         # TODO(byk): Remove these lines when gh is updated in GHA
-        sudo apt update
-        sudo apt install gh
+        curl -L https://github.com/cli/cli/releases/download/v1.8.0/gh_1.8.0_linux_amd64.deb > $TMPDIR/gh.deb
+        sudo dpkg -i $TMPDIR/gh.deb
 
         if [[ '${{ inputs.path }}' == '.' ]]; then
           subdirectory='';
