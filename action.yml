@@ -62,18 +62,6 @@ runs:
         craft prepare --no-input "${{ env.RELEASE_VERSION }}"
         targets=$(craft targets | jq -r '.[]|"  [ ] \(.)"')
         echo "::set-output name=targets::$targets"
-      env:
-        # TODO: Remove this when the latest version of craft is released
-        GITHUB_API_TOKEN: ${{ github.token }}
-    - name: Set issue title for publish request
-      shell: bash
-      run: |
-        if [[ '${{ inputs.path }}' == '.' ]]; then
-          subdirectory='';
-        else
-          subdirectory='/${{ inputs.path }}';
-        fi
-        echo "ISSUE_TITLE='publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION'" >> $GITHUB_ENV
     - name: Check existing publish requests
       id: existing-request
       shell: bash
@@ -82,16 +70,27 @@ runs:
         echo "::set-output name=count::$issue_count"
     - name: Get Release Git Info
       id: release-git-info
-      if: ${{ steps.existing-request.outputs.count == '0' }}
       shell: bash
       run: |
         echo "::set-output name=branch::$(git rev-parse --symbolic-full-name @{-1})"
         echo "::set-output name=sha::$(git rev-parse @{-1})"
         echo "::set-output name=last::$(gh api repos/:owner/:repo/releases/latest | jq -r .tag_name)"
     - name: Request publish
-      if: ${{ steps.existing-request.outputs.count == '0' }}
       shell: bash
       run: |
+        if [[ '${{ inputs.path }}' == '.' ]]; then
+          subdirectory='';
+        else
+          subdirectory='/${{ inputs.path }}';
+        fi
+
+        title="publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION"
+        issue_count=$(gh issue list -S "'$title' in:title" | wc -l)
+        if [[ "$issue_count" == '0' ]]; then
+          echo "There's already an open publish request, skipped issue creation.";
+          exit 0;
+        fi
+
         body="Requested by: @$GITHUB_ACTOR
 
         Quick links:
