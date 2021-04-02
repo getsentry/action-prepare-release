@@ -63,6 +63,8 @@ runs:
     - name: Craft Prepare
       id: craft
       shell: bash
+      env:
+        CRAFT_LOG_LEVEL: WARN
       run: |
         set -x
         cd '${{ inputs.path }}'
