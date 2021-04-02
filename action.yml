@@ -66,19 +66,11 @@ runs:
       env:
         CRAFT_LOG_LEVEL: WARN
       run: |
-        set -x
         cd '${{ inputs.path }}'
         craft prepare --no-input "${{ env.RELEASE_VERSION }}"
         echo $(craft targets)
         targets=$(craft targets | jq -r '.[]|"  [ ] \(.)"')
         echo "::set-output name=targets::$targets"
-    - name: Check existing publish requests
-      id: existing-request
-      shell: bash
-      run: |
-        set -x
-        issue_count=$(gh issue list -S "'$ISSUE_TITLE' in:title" | wc -l)
-        echo "::set-output name=count::$issue_count"
     - name: Get Release Git Info
       id: release-git-info
       shell: bash
@@ -89,6 +81,7 @@ runs:
     - name: Request publish
       shell: bash
       run: |
+        set -x
         if [[ '${{ inputs.path }}' == '.' ]]; then
           subdirectory='';
         else
