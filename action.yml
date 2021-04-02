@@ -53,13 +53,17 @@ runs:
         echo "GIT_COMMITTER_NAME=getsentry-bot" >> $GITHUB_ENV;
         echo "GIT_AUTHOR_NAME=getsentry-bot" >> $GITHUB_ENV;
         echo "EMAIL=bot@getsentry.com" >> $GITHUB_ENV;
+    - name: Install Craft
+      shell: bash
+      run: |
+        craft_dir=$(mktemp -d -t .craft_XXX)
+        cd $craft_dir
+        npm install @sentry/craft@${{ inputs.craft_version }}
+        echo "$craft_dir/node_modules/.bin" >> $GITHUB_PATH
     - name: Craft Prepare
       id: craft
       shell: bash
       run: |
-        npx_cache=$(mktemp -d -t .npx_cache_XXX)
-        function craft() { npx --cache $npx_cache @sentry/craft@${{ inputs.craft_version }} "$@"; }
-        export -f craft
         cd '${{ inputs.path }}'
         craft prepare --no-input "${{ env.RELEASE_VERSION }}"
         targets=$(craft targets | jq -r '.[]|"  [ ] \(.)"')
