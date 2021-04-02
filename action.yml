@@ -81,6 +81,10 @@ runs:
     - name: Request publish
       shell: bash
       run: |
+        # TODO(byk): Remove these lines when gh is updated in GHA
+        sudo apt update
+        sudo apt install gh
+
         if [[ '${{ inputs.path }}' == '.' ]]; then
           subdirectory='';
         else
@@ -88,7 +92,6 @@ runs:
         fi
 
         title="publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION"
-        gh --version
         issue_count=$(gh issue list -S "'$title' in:title" | wc -l)
         if [[ "$issue_count" == '0' ]]; then
           echo "There's already an open publish request, skipped issue creation.";
