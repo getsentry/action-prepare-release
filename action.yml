@@ -60,11 +60,11 @@ runs:
         cd $craft_dir
         npm install @sentry/craft@${{ inputs.craft_version }}
         echo "$craft_dir/node_modules/.bin" >> $GITHUB_PATH
+        cd $GITHUB_WORKSPACE
     - name: Craft Prepare
       id: craft
       shell: bash
       run: |
-        set +x
         cd '${{ inputs.path }}'
         craft prepare --no-input "${{ env.RELEASE_VERSION }}"
         targets=$(craft targets | jq -r '.[]|"  [ ] \(.)"')
@@ -73,7 +73,6 @@ runs:
       id: existing-request
       shell: bash
       run: |
-        set +x
         issue_count=$(gh issue list -S "'$ISSUE_TITLE' in:title" | wc -l)
         echo "::set-output name=count::$issue_count"
     - name: Get Release Git Info
