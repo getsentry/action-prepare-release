@@ -57,7 +57,7 @@ runs:
       id: craft
       shell: bash
       run: |
-        npx_cache=$(mktemp -d -t $GITHUB_WORKSPACE/.npx_cache)
+        npx_cache=$(mktemp -d -t .npx_cache)
         function craft() { return npx --cache $npx_cache @sentry/craft@${{ inputs.craft_version }} "$@"; }
         export -f craft
         cd '${{ inputs.path }}'
