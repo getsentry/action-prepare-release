@@ -58,7 +58,7 @@ runs:
       shell: bash
       run: |
         npx_cache=$(mktemp -d -t .npx_cache_XXX)
-        function craft() { return npx --cache $npx_cache @sentry/craft@${{ inputs.craft_version }} "$@"; }
+        function craft() { npx --cache $npx_cache @sentry/craft@${{ inputs.craft_version }} "$@"; }
         export -f craft
         cd '${{ inputs.path }}'
         craft prepare --no-input "${{ env.RELEASE_VERSION }}"
