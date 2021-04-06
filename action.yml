@@ -68,7 +68,7 @@ runs:
       run: |
         cd '${{ inputs.path }}'
         craft prepare --no-input "${{ env.RELEASE_VERSION }}"
-        targets=$(craft targets | jq -r '.[]|" - [ ] \(.)"')
+        targets=$(craft targets)
         echo "::set-output name=targets::$targets"
     - name: Get Release Git Info
       id: release-git-info
@@ -98,6 +98,7 @@ runs:
           exit 0;
         fi
 
+        targets=$(echo '${{ steps.craft.outputs.targets }}' | jq -r '.[]|" - [ ] \(.)"')
         body="Requested by: @$GITHUB_ACTOR
 
         Quick links:
@@ -107,6 +108,6 @@ runs:
         Assign the **accepted** label to this issue to approve the release.
 
         ### Targets
-        ${{ steps.craft.outputs.targets }}
+        $targets
         "
         gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$title" --body "$body"
