@@ -81,11 +81,6 @@ runs:
     - name: Request publish
       shell: bash
       run: |
-        # TODO(byk): Remove these lines when gh is updated in GHA
-        curl -L 'https://github.com/cli/cli/releases/download/v1.8.0/gh_1.8.0_linux_amd64.deb' > gh.deb
-        sudo dpkg -i gh.deb
-        rm gh.deb
-
         if [[ '${{ inputs.path }}' == '.' ]]; then
           subdirectory='';
         else
