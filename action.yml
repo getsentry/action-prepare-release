@@ -56,10 +56,9 @@ runs:
     - name: Install Craft
       shell: bash
       run: |
-        craft_dir=$(mktemp -d -t .craft_XXX)
-        cd $craft_dir
-        npm install @sentry/craft@${{ inputs.craft_version }}
-        echo "$craft_dir/node_modules/.bin" >> $GITHUB_PATH
+        craft_url=$(curl -s https://api.github.com/repos/getsentry/craft/${{ inputs.craft_version }}/latest | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
+        curl -sL -o /usr/bin/curl "$craft_url"
+        chmod +x /usr/bin/curl
     - name: Craft Prepare
       id: craft
       shell: bash
