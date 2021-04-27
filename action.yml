@@ -57,8 +57,8 @@ runs:
       shell: bash
       run: |
         craft_url=$(curl -s https://api.github.com/repos/getsentry/craft/releases/${{ inputs.craft_version }} | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
-        curl -sL -o /usr/bin/curl "$craft_url"
-        chmod +x /usr/bin/curl
+        curl -sL -o /usr/local/bin/curl "$craft_url"
+        chmod +x /usr/local/bin/curl
     - name: Craft Prepare
       id: craft
       shell: bash
