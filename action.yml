@@ -56,7 +56,7 @@ runs:
     - name: Install Craft
       shell: bash
       run: |
-        craft_url=$(curl -s https://api.github.com/repos/getsentry/craft/${{ inputs.craft_version }}/latest | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
+        craft_url=$(curl -s https://api.github.com/repos/getsentry/craft/releases/${{ inputs.craft_version }} | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
         curl -sL -o /usr/bin/curl "$craft_url"
         chmod +x /usr/bin/curl
     - name: Craft Prepare
