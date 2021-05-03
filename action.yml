@@ -52,7 +52,7 @@ runs:
       run: |
         echo "GIT_COMMITTER_NAME=getsentry-bot" >> $GITHUB_ENV;
         echo "GIT_AUTHOR_NAME=getsentry-bot" >> $GITHUB_ENV;
-        echo "EMAIL=bot@getsentry.com" >> $GITHUB_ENV;
+        echo "EMAIL=bot@sentry.io" >> $GITHUB_ENV;
     - name: Install Craft
       shell: bash
       run: |
