@@ -66,7 +66,7 @@ runs:
         CRAFT_LOG_LEVEL: WARN
       run: |
         cd '${{ inputs.path }}'
-        craft prepare --no-input "${{ env.RELEASE_VERSION }}"
+        craft prepare "${{ env.RELEASE_VERSION }}"
         targets=$(craft targets | jq -r '.[]|" - [ ] \(.)"')
         targets="${targets//$'\n'/'%0A'}"
         echo "::set-output name=targets::$targets"
