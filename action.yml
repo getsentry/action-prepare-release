@@ -66,6 +66,8 @@ runs:
         CRAFT_LOG_LEVEL: WARN
       run: |
         cd '${{ inputs.path }}'
+        # Ensure we have origin/HEAD set
+        git remote set-head origin --auto
         craft prepare "${{ env.RELEASE_VERSION }}"
         targets=$(craft targets | jq -r '.[]|" - [ ] \(.)"')
         targets="${targets//$'\n'/'%0A'}"
