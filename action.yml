@@ -63,7 +63,7 @@ runs:
       id: craft
       shell: bash
       env:
-        CRAFT_LOG_LEVEL: WARN
+        CRAFT_LOG_LEVEL: Debug
       run: |
         cd '${{ inputs.path }}'
         # Ensure we have origin/HEAD set
