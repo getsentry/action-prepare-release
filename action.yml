@@ -95,7 +95,7 @@ runs:
         # issue search can return non-exact matches. Due to this, we extract
         # the titles of the returned issues and check them with `grep -xw`
         # which does a non-regexp full-line match (exact match for us)
-        if gh -R $GITHUB_REPOSITORY_OWNER/publish issue list -S "'$title' in:title" --json title -q '.[] | .title' | grep -qxw -- "$title"; then
+        if gh -R $GITHUB_REPOSITORY_OWNER/publish issue list -S "'$title' in:title" --json title -q '.[] | .title' | grep -qxF -- "$title"; then
           echo "There's already an open publish request, skipped issue creation.";
           exit 0;
         fi
