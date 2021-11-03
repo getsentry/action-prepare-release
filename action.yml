@@ -105,6 +105,9 @@ runs:
         Assign the **accepted** label to this issue to approve the release.
 
         ### Targets
+
         ${{ steps.craft.outputs.targets }}
+
+        Targets marked with a checkbox have already been executed.  Administrators can manually tick a checkbox to force craft to skip it.
         "
         gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$title" --body "$body"
