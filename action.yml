@@ -90,8 +90,12 @@ runs:
         fi
 
         title="publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION"
-        issue_count=$(gh -R $GITHUB_REPOSITORY_OWNER/publish issue list -S "'$title' in:title" | wc -l)
-        if [[ "$issue_count" != '0' ]]; then
+
+        # So, GitHub only allows search with the "in" operator and this
+        # issue search can return non-exact matches. Due to this, we extract
+        # the titles of the returned issues and check them with `grep -xw`
+        # which does a non-regexp full-line match (exact match for us)
+        if gh -R $GITHUB_REPOSITORY_OWNER/publish issue list -S "'$title' in:title" --json title -q '.[] | .title' | grep -qxF -- "$title"; then
           echo "There's already an open publish request, skipped issue creation.";
           exit 0;
         fi
