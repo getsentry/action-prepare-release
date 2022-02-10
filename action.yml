@@ -11,10 +11,6 @@ inputs:
   force:
     description: Force a release even when there are release-blockers (optional)
     required: false
-  craft_version:
-    description: The craft version to use, defaults to "latest" (optional)
-    required: true
-    default: latest
   path:
     description: The path that Craft will run inside. Defaults to `.`
     required: true
@@ -54,13 +50,8 @@ runs:
         echo "GIT_COMMITTER_NAME=getsentry-bot" >> $GITHUB_ENV;
         echo "GIT_AUTHOR_NAME=getsentry-bot" >> $GITHUB_ENV;
         echo "EMAIL=bot@sentry.io" >> $GITHUB_ENV;
-    - name: Install Craft
-      shell: bash
-      run: |
-        craft_url=$(curl -s https://api.github.com/repos/getsentry/craft/releases/${{ inputs.craft_version }} | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
-        sudo curl -sL -o /usr/local/bin/craft "$craft_url"
-        sudo chmod +x /usr/local/bin/craft
-    - name: Craft Prepare
+    - uses: docker://getsentry/craft:latest
+      name: Craft Prepare
       id: craft
       shell: bash
       env:
