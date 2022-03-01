@@ -8,6 +8,9 @@ inputs:
     description: Use automatic CalVer versioning
     required: true
     default: false
+  merge_target:
+    description: Target branch to merge into. Uses the default branch as a fallback (optional)
+    required: false
   force:
     description: Force a release even when there are release-blockers (optional)
     required: false
@@ -88,6 +91,12 @@ runs:
         else
           subdirectory='/${{ inputs.path }}';
         fi
+        
+        if [[ -n '${{ inputs.merge_target }}' ]]; then
+          merge_target='${{ inputs.merge_target }}';
+        else
+          merge_target='(default)';
+        fi
 
         title="publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION"
 
@@ -101,7 +110,9 @@ runs:
         fi
 
         body="Requested by: @$GITHUB_ACTOR
-
+        
+        Merge target: $merge_target
+        
         Quick links:
         - [View changes](https://github.com/$GITHUB_REPOSITORY/compare/${{ steps.release-git-info.outputs.last }}...${{ steps.release-git-info.outputs.branch }})
         - [View check runs](https://github.com/$GITHUB_REPOSITORY/commit/${{ steps.release-git-info.outputs.sha }}/checks/)
