@@ -118,6 +118,7 @@ runs:
         - [View check runs](https://github.com/$GITHUB_REPOSITORY/commit/${{ steps.release-git-info.outputs.sha }}/checks/)
 
         Assign the **accepted** label to this issue to approve the release.
+        Leave the `#retract` comment under this issue to retract the release (original issuer only).
 
         ### Targets
 
