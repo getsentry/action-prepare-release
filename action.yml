@@ -75,14 +75,14 @@ runs:
         CRAFT_LOG_LEVEL=Debug craft prepare "${{ env.RELEASE_VERSION }}"
         targets=$(craft targets | jq -r '.[]|" - [ ] \(.)"')
         targets="${targets//$'\n'/'%0A'}"
-        echo "::set-output name=targets::$targets"
+        echo "targets=$targets" >> "$GITHUB_OUTPUT"
     - name: Get Release Git Info
       id: release-git-info
       shell: bash
       run: |
-        echo "::set-output name=branch::$(git rev-parse --symbolic-full-name @{-1})"
-        echo "::set-output name=sha::$(git rev-parse @{-1})"
-        echo "::set-output name=last::$(gh api repos/:owner/:repo/releases/latest | jq -r .tag_name)"
+        echo "branch=$(git rev-parse --symbolic-full-name @{-1})" >> "$GITHUB_OUTPUT"
+        echo "sha=$(git rev-parse @{-1})" >> "$GITHUB_OUTPUT"
+        echo "last=$(gh api repos/:owner/:repo/releases/latest | jq -r .tag_name)" >> "$GITHUB_OUTPUT"
     - name: Request publish
       shell: bash
       run: |
