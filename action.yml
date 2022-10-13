@@ -74,8 +74,11 @@ runs:
         git remote set-head origin --auto
         CRAFT_LOG_LEVEL=Debug craft prepare "${{ env.RELEASE_VERSION }}"
         targets=$(craft targets | jq -r '.[]|" - [ ] \(.)"')
-        targets="${targets//$'\n'/'%0A'}"
-        echo "targets=$targets" >> "$GITHUB_OUTPUT"
+
+        # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
+        echo "targets<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$targets" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
     - name: Get Release Git Info
       id: release-git-info
       shell: bash
