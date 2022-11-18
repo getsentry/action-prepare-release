@@ -83,6 +83,8 @@ runs:
       id: release-git-info
       shell: bash
       run: |
+        # craft switches back to `main` but we want info on the release branch
+        git checkout -
         echo "branch=$(git rev-parse --symbolic-full-name HEAD)" >> "$GITHUB_OUTPUT"
         echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         echo "last=$(git rev-parse --verify "$(git describe --tags --abbrev=0)" || echo HEAD)" >> "$GITHUB_OUTPUT"
