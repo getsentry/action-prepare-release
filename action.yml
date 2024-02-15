@@ -66,6 +66,12 @@ runs:
         craft_url=$(curl -s https://api.github.com/repos/getsentry/craft/releases/${{ inputs.craft_version }} | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
         sudo curl -sL -o /usr/local/bin/craft "$craft_url"
         sudo chmod +x /usr/local/bin/craft
+    - name: Checkout merge target branch
+      if: inputs.craft_config_from_merge_target == 'true' && inputs.merge_target
+      shell: bash
+      run: |
+        git fetch origin ${{ inputs.merge_target }}
+        git checkout ${{ inputs.merge_target }}
     - name: Craft Prepare
       id: craft
       shell: bash
@@ -77,6 +83,8 @@ runs:
         git remote set-head origin --auto
         CRAFT_LOG_LEVEL=Debug craft prepare "${{ env.RELEASE_VERSION }}"
     - name: Checkout merge target branch
+      # We need to check out the merge target branch again because at the end of `craft prepare`
+      # craft checks out the default branch
       if: inputs.craft_config_from_merge_target == 'true' && inputs.merge_target
       shell: bash
       run: |
