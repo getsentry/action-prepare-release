@@ -22,6 +22,9 @@ inputs:
     description: The path that Craft will run inside. Defaults to `.`
     required: true
     default: "."
+  craft_config_from_merge_target:
+    description: Use the craft config from the merge target branch. Defaults to the repository's default branch
+    default: false
 
 runs:
   using: "composite"
@@ -63,6 +66,12 @@ runs:
         craft_url=$(curl -s https://api.github.com/repos/getsentry/craft/releases/${{ inputs.craft_version }} | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
         sudo curl -sL -o /usr/local/bin/craft "$craft_url"
         sudo chmod +x /usr/local/bin/craft
+    - name: Checkout merge target branch
+      if: inputs.craft_config_from_merge_target == 'true' && inputs.merge_target
+      shell: bash
+      run: |
+        git fetch origin ${{ inputs.merge_target }}
+        git checkout ${{ inputs.merge_target }}
     - name: Craft Prepare
       id: craft
       shell: bash
@@ -73,6 +82,20 @@ runs:
         # Ensure we have origin/HEAD set
         git remote set-head origin --auto
         CRAFT_LOG_LEVEL=Debug craft prepare "${{ env.RELEASE_VERSION }}"
+    - name: Checkout merge target branch
+      # We need to check out the merge target branch again because at the end of `craft prepare`
+      # craft checks out the default branch
+      if: inputs.craft_config_from_merge_target == 'true' && inputs.merge_target
+      shell: bash
+      run: |
+        git fetch origin ${{ inputs.merge_target }}
+        git checkout ${{ inputs.merge_target }}
+    - name: Read Craft Targets
+      id: craft-targets
+      shell: bash
+      env:
+        CRAFT_LOG_LEVEL: Warn
+      run: |
         targets=$(craft targets | jq -r '.[]|" - [ ] \(.)"')
 
         # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
@@ -96,7 +119,7 @@ runs:
         else
           subdirectory='/${{ inputs.path }}';
         fi
-        
+
         if [[ -n '${{ inputs.merge_target }}' ]]; then
           merge_target='${{ inputs.merge_target }}';
         else
@@ -115,9 +138,9 @@ runs:
         fi
 
         body="Requested by: @$GITHUB_ACTOR
-        
+
         Merge target: $merge_target
-        
+
         Quick links:
         - [View changes](https://github.com/$GITHUB_REPOSITORY/compare/${{ steps.release-git-info.outputs.last }}...${{ steps.release-git-info.outputs.branch }})
         - [View check runs](https://github.com/$GITHUB_REPOSITORY/commit/${{ steps.release-git-info.outputs.sha }}/checks/)
@@ -127,7 +150,7 @@ runs:
 
         ### Targets
 
-        ${{ steps.craft.outputs.targets }}
+        ${{ steps.craft-targets.outputs.targets }}
 
         Targets marked with a checkbox have already been executed.  Administrators can manually tick a checkbox to force craft to skip it.
         "
