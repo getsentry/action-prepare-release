@@ -24,7 +24,6 @@ inputs:
     default: "."
   craft_config_from_merge_target:
     description: Use the craft config from the merge target branch. Defaults to the repository's default branch
-    required: true
     default: false
 
 runs:
@@ -78,7 +77,7 @@ runs:
         git remote set-head origin --auto
         CRAFT_LOG_LEVEL=Debug craft prepare "${{ env.RELEASE_VERSION }}"
     - name: Checkout merge target branch
-      if: (inputs.craft_config_from_merge_target == 'true') && (inputs.merge_target)
+      if: inputs.craft_config_from_merge_target == 'true' && inputs.merge_target
       shell: bash
       run: |
         git fetch origin ${{ inputs.merge_target }}
