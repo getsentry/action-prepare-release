@@ -126,7 +126,7 @@ runs:
           merge_target='(default)';
         fi
 
-        if [[ -n '${{ inputs.craft_config_from_merge_target == 'true' }}' ]]; then
+        if [[ -n '${{ inputs.craft_config_from_merge_target }}'  == 'true' ]]; then
           config_branch='${{ inputs.merge_target }}';
         else
           config_branch='(default)';
