@@ -126,6 +126,12 @@ runs:
           merge_target='(default)';
         fi
 
+        if [[ -n '${{ inputs.craft_config_from_merge_target }}']]; then
+          config_branch="${{ inputs.merge_target }}";
+        else
+          config_branch="default";
+        fi
+
         title="publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION"
 
         # So, GitHub only allows search with the "in" operator and this
@@ -140,6 +146,8 @@ runs:
         body="Requested by: @$GITHUB_ACTOR
 
         Merge target: $merge_target
+
+        Craft Config from: $config_branch
 
         Quick links:
         - [View changes](https://github.com/$GITHUB_REPOSITORY/compare/${{ steps.release-git-info.outputs.last }}...${{ steps.release-git-info.outputs.branch }})
