@@ -127,9 +127,9 @@ runs:
         fi
 
         if [[ '${{ inputs.craft_config_from_merge_target }}'  == 'true' && ${{ inputs.merge_target }} ]]; then
-          config_branch='${{ inputs.merge_target }}';
+          config_branch='merge_target';
         else
-          config_branch='(default)';
+          config_branch='default';
         fi
 
         title="publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION"
