@@ -70,7 +70,7 @@ runs:
       if: inputs.craft_config_from_merge_target == 'true' && inputs.merge_target
       shell: bash
       run: |
-        git fetch origin ${{ inputs.merge_target }}
+        git fetch origin ${{ inputs.merge_target }} --depth 1
         git checkout ${{ inputs.merge_target }}
     - name: Craft Prepare
       id: craft
@@ -88,7 +88,6 @@ runs:
       if: inputs.craft_config_from_merge_target == 'true' && inputs.merge_target
       shell: bash
       run: |
-        git fetch origin ${{ inputs.merge_target }}
         git checkout ${{ inputs.merge_target }}
     - name: Read Craft Targets
       id: craft-targets
