@@ -106,7 +106,9 @@ runs:
       shell: bash
       run: |
         # craft switches back to `main` but we want info on the release branch
-        git checkout -
+        # if we previously checked out the merge target branch (craft_config_from_merge_target) 
+        # we need to go back 2 checkouts, otherwise 1
+        git checkout ${{ inputs.craft_config_from_merge_target == 'true' && inputs.merge_target && '@{-2}' || '@{-1}' }}
         echo "branch=$(git rev-parse --symbolic-full-name HEAD)" >> "$GITHUB_OUTPUT"
         echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         echo "last=$(git rev-parse --verify "$(git describe --tags --abbrev=0)" || echo HEAD)" >> "$GITHUB_OUTPUT"
