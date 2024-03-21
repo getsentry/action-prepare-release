@@ -77,8 +77,8 @@ runs:
       shell: bash
       env:
         CRAFT_LOG_LEVEL: Warn
+      working-directory: ${{ inputs.path }}
       run: |
-        cd '${{ inputs.path }}'
         # Ensure we have origin/HEAD set
         git remote set-head origin --auto
         CRAFT_LOG_LEVEL=Debug craft prepare "${{ env.RELEASE_VERSION }}"
@@ -92,6 +92,7 @@ runs:
     - name: Read Craft Targets
       id: craft-targets
       shell: bash
+      working-directory: ${{ inputs.path }}
       env:
         CRAFT_LOG_LEVEL: Warn
       run: |
