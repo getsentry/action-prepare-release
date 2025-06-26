@@ -25,6 +25,10 @@ inputs:
   craft_config_from_merge_target:
     description: Use the craft config from the merge target branch. Defaults to the repository's default branch
     default: false
+  dry_run:
+    description: Do not actually publish the release, just perform the release actions involved.
+    default: false
+    type: boolean
 
 runs:
   using: "composite"
@@ -81,7 +85,7 @@ runs:
       run: |
         # Ensure we have origin/HEAD set
         git remote set-head origin --auto
-        CRAFT_LOG_LEVEL=Debug craft prepare "${{ env.RELEASE_VERSION }}"
+        CRAFT_LOG_LEVEL=Debug craft prepare "${{ env.RELEASE_VERSION }}" ${{ inputs.dry_run && '--dry-run' || '' }}
     - name: Checkout merge target branch
       # We need to check out the merge target branch again because at the end of `craft prepare`
       # craft checks out the default branch
@@ -156,4 +160,9 @@ runs:
 
         Targets marked with a checkbox have already been executed.  Administrators can manually tick a checkbox to force craft to skip it.
         "
-        gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$title" --body "$body"
+
+        if [[ '${{ inputs.dry_run }}' = 'true' ]]; then
+          gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$title" --body "$body" --label "dry-run"
+        else
+          gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$title" --body "$body"
+        fi
