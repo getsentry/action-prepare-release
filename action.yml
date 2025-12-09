@@ -63,7 +63,7 @@ runs:
     - name: Install Craft
       shell: bash
       run: |
-        craft_url=$(curl -s https://api.github.com/repos/getsentry/craft/releases/${{ inputs.craft_version }} | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
+        craft_url=$(curl -s https://api.github.com/repos/getsentry/craft/releases/tags/${{ inputs.craft_version }} | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
         sudo curl -sL -o /usr/local/bin/craft "$craft_url"
         sudo chmod +x /usr/local/bin/craft
     - name: Checkout merge target branch
