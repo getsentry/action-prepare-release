@@ -16,8 +16,7 @@ inputs:
     required: false
   craft_version:
     description: The craft version to use, defaults to "latest" (optional)
-    required: true
-    default: latest
+    required: false
   path:
     description: The path that Craft will run inside. Defaults to `.`
     required: true
@@ -62,8 +61,11 @@ runs:
         echo "EMAIL=bot@sentry.io" >> $GITHUB_ENV;
     - name: Install Craft
       shell: bash
+      env:
+          CRAFT_RELEASE: ${{ inputs.craft_version && inputs.craft_version != 'latest' && format('tags/{0}', inputs.craft_version) || 'latest' }}
       run: |
-        craft_url=$(curl -s https://api.github.com/repos/getsentry/craft/releases/tags/${{ inputs.craft_version }} | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
+        
+        craft_url=$(curl -s "https://api.github.com/repos/getsentry/craft/releases/tags/$CRAFT_RELEASE" | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
         sudo curl -sL -o /usr/local/bin/craft "$craft_url"
         sudo chmod +x /usr/local/bin/craft
     - name: Checkout merge target branch
