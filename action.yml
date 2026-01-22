@@ -31,17 +31,22 @@ runs:
     - id: killswitch
       name: Check release blockers
       shell: bash
+      env:
+        FORCE_INPUT: ${{ inputs.force }}
       run: |
-        if [[ -z '${{ inputs.force }}' ]] && gh issue list -l release-blocker -s open | grep -q '^[0-9]\+[[:space:]]'; then
+        if [[ -z "$FORCE_INPUT" ]] && gh issue list -l release-blocker -s open | grep -q '^[0-9]\+[[:space:]]'; then
           echo "Open release-blocking issues found, cancelling release...";
           gh api -X POST repos/:owner/:repo/actions/runs/$GITHUB_RUN_ID/cancel;
         fi
     - name: Determine version
       shell: bash
+      env:
+        VERSION_INPUT: ${{ inputs.version }}
+        CALVER_INPUT: ${{ inputs.calver }}
       run: |
-        if [[ -n '${{ inputs.version }}' ]]; then
-          echo 'RELEASE_VERSION=${{ inputs.version }}' >> $GITHUB_ENV;
-        elif [[ '${{ inputs.calver }}' = 'true' ]]; then
+        if [[ -n "$VERSION_INPUT" ]]; then
+          echo "RELEASE_VERSION=$VERSION_INPUT" >> $GITHUB_ENV;
+        elif [[ "$CALVER_INPUT" = 'true' ]]; then
           # Our releases are on 15th of each month so go back 14 days (a fortnight)
           DATE_PART=$(date -d '-1 fortnight' +'%y.%-m')
           declare -i PATCH_VERSION=0
@@ -71,9 +76,11 @@ runs:
     - name: Checkout merge target branch
       if: inputs.craft_config_from_merge_target == 'true' && inputs.merge_target
       shell: bash
+      env:
+        MERGE_TARGET: ${{ inputs.merge_target }}
       run: |
-        git fetch origin ${{ inputs.merge_target }}
-        git checkout ${{ inputs.merge_target }}
+        git fetch origin "$MERGE_TARGET"
+        git checkout "$MERGE_TARGET"
     - name: Craft Prepare
       id: craft
       shell: bash
@@ -83,14 +90,16 @@ runs:
       run: |
         # Ensure we have origin/HEAD set
         git remote set-head origin --auto
-        CRAFT_LOG_LEVEL=Debug craft prepare "${{ env.RELEASE_VERSION }}"
+        CRAFT_LOG_LEVEL=Debug craft prepare "$RELEASE_VERSION"
     - name: Checkout merge target branch
       # We need to check out the merge target branch again because at the end of `craft prepare`
       # craft checks out the default branch
       if: inputs.craft_config_from_merge_target == 'true' && inputs.merge_target
       shell: bash
+      env:
+        MERGE_TARGET: ${{ inputs.merge_target }}
       run: |
-        git checkout ${{ inputs.merge_target }}
+        git checkout "$MERGE_TARGET"
     - name: Read Craft Targets
       id: craft-targets
       shell: bash
@@ -107,25 +116,34 @@ runs:
     - name: Get Release Git Info
       id: release-git-info
       shell: bash
+      env:
+        CHECKOUT_REF: ${{ inputs.craft_config_from_merge_target == 'true' && inputs.merge_target && '@{-2}' || '@{-1}' }}
       run: |
         # craft switches back to `main` but we want info on the release branch
-        # if we previously checked out the merge target branch (craft_config_from_merge_target) 
+        # if we previously checked out the merge target branch (craft_config_from_merge_target)
         # we need to go back 2 checkouts, otherwise 1
-        git checkout ${{ inputs.craft_config_from_merge_target == 'true' && inputs.merge_target && '@{-2}' || '@{-1}' }}
+        git checkout "$CHECKOUT_REF"
         echo "branch=$(git rev-parse --symbolic-full-name HEAD)" >> "$GITHUB_OUTPUT"
         echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         echo "last=$(git rev-parse --verify "$(git describe --tags --abbrev=0)" || echo HEAD)" >> "$GITHUB_OUTPUT"
     - name: Request publish
       shell: bash
+      env:
+        PATH_INPUT: ${{ inputs.path }}
+        MERGE_TARGET_INPUT: ${{ inputs.merge_target }}
+        RELEASE_LAST: ${{ steps.release-git-info.outputs.last }}
+        RELEASE_BRANCH: ${{ steps.release-git-info.outputs.branch }}
+        RELEASE_SHA: ${{ steps.release-git-info.outputs.sha }}
+        CRAFT_TARGETS: ${{ steps.craft-targets.outputs.targets }}
       run: |
-        if [[ '${{ inputs.path }}' == '.' ]]; then
+        if [[ "$PATH_INPUT" == '.' ]]; then
           subdirectory='';
         else
-          subdirectory='/${{ inputs.path }}';
+          subdirectory="/$PATH_INPUT";
         fi
 
-        if [[ -n '${{ inputs.merge_target }}' ]]; then
-          merge_target='${{ inputs.merge_target }}';
+        if [[ -n "$MERGE_TARGET_INPUT" ]]; then
+          merge_target="$MERGE_TARGET_INPUT";
         else
           merge_target='(default)';
         fi
@@ -146,15 +164,15 @@ runs:
         Merge target: $merge_target
 
         Quick links:
-        - [View changes](https://github.com/$GITHUB_REPOSITORY/compare/${{ steps.release-git-info.outputs.last }}...${{ steps.release-git-info.outputs.branch }})
-        - [View check runs](https://github.com/$GITHUB_REPOSITORY/commit/${{ steps.release-git-info.outputs.sha }}/checks/)
+        - [View changes](https://github.com/$GITHUB_REPOSITORY/compare/$RELEASE_LAST...$RELEASE_BRANCH)
+        - [View check runs](https://github.com/$GITHUB_REPOSITORY/commit/$RELEASE_SHA/checks/)
 
         Assign the **accepted** label to this issue to approve the release.
         To retract the release, the person requesting it must leave a comment containing \`#retract\` on a line by itself under this issue.
 
         ### Targets
 
-        ${{ steps.craft-targets.outputs.targets }}
+        $CRAFT_TARGETS
 
         Targets marked with a checkbox have already been executed.  Administrators can manually tick a checkbox to force craft to skip it.
         "
